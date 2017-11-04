@@ -9,9 +9,9 @@
 -- load credentials, 'SSID' and 'PASSWORD' declared and initialize in there
 dofile("credentials.lua")
 
-wifiPin = 0;
-gpio.mode(wifiPin,gpio.OUTPUT)
-gpio.write(wifiPin,1); -- turn the led OFF
+--wifiPin = 0;
+--gpio.mode(wifiPin,gpio.OUTPUT)
+--gpio.write(wifiPin,1); -- turn the led OFF
 
 function startup()
     if file.open("init.lua") == nil then
@@ -20,7 +20,7 @@ function startup()
         print("Running")
         file.close("init.lua")
         -- the actual application is stored in 'application.lua'
-         dofile("application.lua")
+         dofile("testled.lua")
     end
 end
 
@@ -30,7 +30,7 @@ wifi_connect_event = function(T)
     print("Waiting for IP address...")
     if disconnect_ct ~= nil then disconnect_ct = nil end
 
-    gpio.write(wifiPin,0);
+  --  gpio.write(wifiPin,0);
 end
 
 wifi_got_ip_event = function(T)
@@ -44,7 +44,7 @@ end
 
 wifi_disconnect_event = function(T)
 
-    gpio.write(wifiPin,1)
+    --gpio.write(wifiPin,1)
 
     if T.reason == wifi.eventmon.reason.ASSOC_LEAVE then
         --the station has disassociated from a previously connected AP

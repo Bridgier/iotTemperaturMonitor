@@ -11,10 +11,12 @@ dly = 1000
 -- use D4
 ledPin = 4
 ledPin2 = 0
+testLedPin = 1
 
 -- set mode to output
 gpio.mode(ledPin,gpio.OUTPUT)
-
+gpio.mode(testLedPin,gpio.OUTPUT);
+gpio.write(testLedPin,0);
 
 ledState = 1
 gpio.write(ledPin, ledState)
@@ -22,11 +24,12 @@ count = 0;
 
 -- timer loop
 --
---tmr.alarm( timerId, dly, 1, function()
---    ledState = 1 - ledState;
---    -- write state to D4
---    gpio.write(ledPin2, ledState)
---end)
+tmr.alarm( timerId, dly, 1, function()
+    --ledState = 1 - ledState;
+    -- write state to D4
+    --gpio.write(testLedPin, ledState)
+    --fetchData();
+end)
 
 -- Start a simple http server
 srv=net.createServer(net.TCP)
@@ -58,8 +61,6 @@ srv:listen(80,function(conn)
         if(path == '/')then
 
             count = count + 1
-
-
             buf = buf.."<b>Count:"..count.."</b>";
         end
 
@@ -69,3 +70,5 @@ srv:listen(80,function(conn)
     end)
     conn:on("sent",function(conn) conn:close() end)
 end)
+
+--dofile("mpl3115a2.lua")

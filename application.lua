@@ -5,6 +5,7 @@
 -- Time: 10:49 PM
 -- To change this template use File | Settings | File Templates.
 --
+require("mpl3115a2")
 
 timerId = 0
 dly = 1000

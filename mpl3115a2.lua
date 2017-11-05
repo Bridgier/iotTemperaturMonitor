@@ -1,102 +1,82 @@
---
--- Created by IntelliJ IDEA.
--- User: Bridgier
--- Date: 11/4/2017
--- Time: 10:16 AM
--- To change this template use File | Settings | File Templates.
---
+local moduleName = "mpl3115a2"
 
-id=0  -- Software I2C
+local M = {
+    MPL3115A2_ADDR            		= 0x60
+}
+_G[moduleName] = M
 
-sda= 6
-scl= 5
+id = 0 -- i2c bus id
+scl = 5;
+sda = 6;
 
-addr=0x60 -- the I2C address of our device
+local function read_reg(dev_addr, reg_addr)
+    i2c.start(id)
+    a = i2c.address(id, dev_addr ,i2c.TRANSMITTER)
+    if a ~= true then
+        print("Device NOT connected")
+    end
+    i2c.write(id,reg_addr)
+    -- i2c.stop(id) < Don't send a stop for this device
+    i2c.start(id)
+    a = i2c.address(id, dev_addr,i2c.RECEIVER)
+    if a ~= true then
+        print("Device NOT connected")
+    end
+    c=i2c.read(id,1)
+    i2c.stop(id)
+    return string.byte(c)
+end
 
-Pmsb= 0;
-Pscb =0;
-Plsb =0;
-Tmsb =0;
-Tlsb = 0;
+local function write_reg(dev_addr, reg_addr, val)
+    i2c.start(id)
+    a = i2c.address(id, dev_addr ,i2c.TRANSMITTER)
+    if a ~= true then
+        print("Device NOT connected")
+    end
+    c = i2c.write(id,reg_addr, val)
+    i2c.stop(id)
+end
 
-
-function initialise()
+local function getData(addr) -- Do the actual reading from the sensor
     i2c.setup(id,sda,scl,i2c.SLOW)
 
     write_reg(addr,0x26,0x38)
     write_reg(addr,0x13,0x07)
     write_reg(addr,0x26,0x39)
 
-    print("Waiting for data")
+    uart.write(0,"Waiting for data from MPL3115A2")
     repeat
         status = read_reg(addr,0x00)
         uart.write(0,".")
     until bit.band(status,0x08) == 0x08
 
-    print("")
-    print("Status")
-    print(status)
-    Pmsb = read_reg(addr,0x01)
-    Pcsb = read_reg(addr,0x02)
-    Plsb = read_reg(addr,0x03)
-    Tmsb = read_reg(addr,0x04)
-    Tlsb = read_reg(addr,0x05)
+    print()
 
-    print("Pmsb")
-    print(Pmsb)
-    print("Pcsb")
-    print(Pcsb)
-    print("Plsb")
-    print(Plsb)
-    print("Tmsb")
-    print(Tmsb)
-    print("Tlsb")
-    print(Tlsb)
+    local Pmsb = read_reg(addr,0x01)
+    local Pcsb = read_reg(addr,0x02)
+    local Plsb = read_reg(addr,0x03)
+    local Tmsb = read_reg(addr,0x04)
+    local Tlsb = read_reg(addr,0x05)
 
+    local p = bit.lshift(Pmsb,8)
+    p = bit.bor(p, Pcsb)
+    p = bit.lshift(p,8)
+    p = bit.bor(p, Plsb)
+    p = bit.rshift(p,4)
+
+    local baro = p/4
+
+    local t = (Tmsb * 256) + Tlsb
+    t = bit.rshift(t,4)
+    t = t/16.0
+
+    return baro, t
 end
 
-function fetchData()
-    Pmsb = read_reg(addr,0x01)
-    Pcsb = read_reg(addr,0x02)
-    Plsb = read_reg(addr,0x03)
-    Tmsb = read_reg(addr,0x04)
-    Tlsb = read_reg(addr,0x05)
-
-    print("Pmsb")
-    print(Pmsb)
-    print("Pcsb")
-    print(Pcsb)
-    print("Plsb")
-    print(Plsb)
-    print("Tmsb")
-    print(Tmsb)
-    print("Tlsb")
-    print(Tlsb)
+function M.read()
+    i2c.setup(id, sda , scl, i2c.SLOW)
+    baro,temp = getData(M.MPL3115A2_ADDR)
+    return baro,temp
 end
 
-function read_reg(dev_addr, reg_addr)
-    i2c.start(id)
-
-    if(i2c.address(id, dev_addr ,i2c.TRANSMITTER))then
-        print("Connected");
-    else
-        print("NO GOOD");
-    end
-
-    i2c.write(id,reg_addr)
-    -- i2c.stop(id) <-- This was the problem. Mustn't send the Stop
-    i2c.start(id)
-    c=i2c.read(id,1)
-    i2c.stop(id)
-    return string.byte(c)
-end
-
-function write_reg(dev_addr, reg_addr, val)
-    i2c.start(id)
-    i2c.address(id, dev_addr ,i2c.TRANSMITTER)
-    i2c.write(id,reg_addr)
-    i2c.write(id,val)
-    i2c.stop(id)
-end
-
-initialise()
+return M

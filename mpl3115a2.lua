@@ -8,10 +8,17 @@
 
 id=0  -- Software I2C
 
-sda= 2
+sda= 6
 scl= 5
 
 addr=0x60 -- the I2C address of our device
+
+Pmsb= 0;
+Pscb =0;
+Plsb =0;
+Tmsb =0;
+Tlsb = 0;
+
 
 function initialise()
     i2c.setup(id,sda,scl,i2c.SLOW)

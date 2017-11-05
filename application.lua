@@ -57,10 +57,14 @@ srv:listen(80,function(conn)
 
         if(path == '/')then
 
+            baro, temp = mpl3115a2.read()
+            print(string.format("Barometric pressure: %f pa", baro))
+            print(string.format("Temperature A: %f C", temp))
+
             count = count + 1
             buf = buf.."<ul><li><b>Count:"..count.."</b></li>";
-            buf = buf.."<li>"..Tmsb.."</li>";
-            buf = buf.."<li>"..Tlsb.."</li></ul>";
+            buf = buf.."<li>Pres:"..string.format("%f",baro).." pa</li>";
+            buf = buf.."<li>Temp:"..string.format("%f",temp).." C</li></ul>";
         end
 
         print(buf);
@@ -69,5 +73,3 @@ srv:listen(80,function(conn)
     end)
     conn:on("sent",function(conn) conn:close() end)
 end)
-
-dofile("scan.lua")
